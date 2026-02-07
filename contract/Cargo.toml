@@ -1,0 +1,17 @@
+[package]
+name = "near_intersect_factory"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+near-sdk = { version = "4.0.0", default-features = false, features = ["env", "near-bindgen", "collections", "json-types"] }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+overflow-checks = true
