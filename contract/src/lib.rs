@@ -49,15 +49,7 @@ impl Contract {
             balances,
         }
     }
-
-    pub fn total_supply(&self) -> U128 {
-        self.total_supply.into()
-    }
-
-    pub fn balance_of(&self, account: AccountId) -> U128 {
-        self.balances.get(&account).unwrap_or(0).into()
-    }
-
+        
     pub fn unlockable(&self) -> U128 {
         let now = env::block_timestamp();
         if now < self.genesis_ts {
@@ -67,4 +59,15 @@ impl Contract {
         let per_cycle = self.locked_supply / 1; // Phase-0 single-cycle full unlock
         (cycles as Balance * per_cycle).min(self.locked_supply).into()
     }
+
+    // Factory wrappers (v0)
+    pub fn create_token(&mut self, symbol: String, account: AccountId) {
+        self.factory.create_token(symbol, account);
+    }
+
+    pub fn get_token(&self, symbol: String) -> Option<AccountId> {
+        self.factory.get_token(symbol)
+    }
 }
+
+    
