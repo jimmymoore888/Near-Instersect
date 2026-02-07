@@ -9,6 +9,7 @@ pub use factory::Factory;
 #[near_bindgen]
 #[derive(PanicOnDefault)]
 pub struct Contract {
+    factory: Factory,
     total_supply: Balance,
     circulating_supply: Balance,
     locked_supply: Balance,
@@ -39,6 +40,7 @@ impl Contract {
         balances.insert(&owner, &circulating);
 
         Self {
+            factory: Factory::new(),
             total_supply: total,
             circulating_supply: circulating,
             locked_supply: locked,
