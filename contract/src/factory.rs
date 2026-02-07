@@ -1,16 +1,14 @@
-use near_sdk::{near_bindgen, env, AccountId, PanicOnDefault};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::UnorderedMap;
+use near_sdk::{env, AccountId};
+use near_sdk::PanicOnDefault;
 
-#[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
 pub struct Factory {
     registry: UnorderedMap<String, AccountId>,
 }
 
-#[near_bindgen]
 impl Factory {
-    #[init]
     pub fn new() -> Self {
         Self {
             registry: UnorderedMap::new(b"r".to_vec()),
@@ -19,8 +17,9 @@ impl Factory {
 
     pub fn create_token(&mut self, symbol: String, account: AccountId) {
         let s = symbol.to_uppercase();
+        assert!(!self.registry.contains_key(&s), "SYMBOL_USED");
         self.registry.insert(&s, &account);
-        env::log_str(&format!("TokenCreated {}", s));
+        env::log_str(&format!("TokenCreated {} {}", s, account));
     }
 
     pub fn get_token(&self, symbol: String) -> Option<AccountId> {
