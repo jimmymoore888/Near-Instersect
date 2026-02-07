@@ -1,6 +1,10 @@
+mod factory;
+
 use near_sdk::{env, near_bindgen, AccountId, Balance, PanicOnDefault};
 use near_sdk::collections::LookupMap;
 use near_sdk::json_types::U128;
+
+pub use factory::Factory;
 
 #[near_bindgen]
 #[derive(PanicOnDefault)]
