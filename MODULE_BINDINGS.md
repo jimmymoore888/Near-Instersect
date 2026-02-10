@@ -125,3 +125,10 @@ No module may:
 - Reallocate distribution
 
 Unless explicitly authorized by LAW v1 schema and invariants.
+
+## Module 8: OutpaceInflation (OIM)
+- Purpose: Real-return oriented treasury/savings allocation policy (inflation defense)
+- Depends on: LAW_v1_INVARIANTS, Module 7 (PercentageDistribution), treasury/savings vault primitives
+- Prohibits: supply changes, timelock changes, discretionary trading
+- Modes: ORACLE (off-chain CPI feed) or FIXED_HURDLE (genesis-locked)
+- Audit Events: OIM_INDEX_POSTED, OIM_STATUS_UPDATED, OIM_REBALANCED
