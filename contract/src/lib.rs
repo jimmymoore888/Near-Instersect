@@ -1,82 +1,78 @@
-mod oim;
 mod factory;
-use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::{env, near_bindgen, AccountId, Balance, PanicOnDefault};
-use near_sdk::collections::LookupMap;
-use near_sdk::json_types::U128;
+mod law;
 
-pub use factory::Factory;
-pub use oim::{
-    InflationIndex,
-    OimConfig,
-    OimMode,
-    OimState,
-    OimStatus,
+// NOTE: OIM remains in the repo, but is intentionally NOT wired into the build yet.
+// This keeps Factory v0 compilable while Module 8 is still being finalized.
+
+use crate::factory::Factory;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::json_types::Base64VecU8;
+use near_sdk::serde::{Deserialize, Serialize};
+use near_sdk::{env, near_bindgen, AccountId, PanicOnDefault};
+
+pub use law::{
+    Airdrop, BurnCap, FixedSupply, LawV1Schema, LiquidityBootstrap, PercentageDistribution,
+    TimeLock, VestingSchedule,
 };
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "near_sdk::serde")]
+pub struct TokenRecordView {
+    pub symbol: String,
+    pub account: AccountId,
+    pub created_by: AccountId,
+    pub created_at_ns: u64,
+    pub schema_hash: Base64VecU8,
+    pub law: LawV1Schema,
+}
+
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
 pub struct Contract {
-    oim: oim::Oim,
     factory: Factory,
-    total_supply: Balance,
-    circulating_supply: Balance,
-    locked_supply: Balance,
-    genesis_ts: u64,
-    interval_ns: u64,
-    balances: LookupMap<AccountId, Balance>,
 }
 
 #[near_bindgen]
 impl Contract {
     #[init]
-    pub fn new(
-        owner: AccountId,
-        total_supply: U128,
-        locked_supply: U128,
-        genesis_ts: u64,
-        interval_ns: u64,
-    ) -> Self {
+    pub fn new() -> Self {
         assert!(!env::state_exists(), "Already initialized");
-
-        let total: Balance = total_supply.into();
-        let locked: Balance = locked_supply.into();
-        assert!(locked <= total, "Locked exceeds total");
-
-        let circulating = total - locked;
-
-        let mut balances = LookupMap::new(b"b");
-        balances.insert(&owner, &circulating);
-
         Self {
             factory: Factory::new(),
-            oim: oim::Oim::new(),
-            total_supply: total,
-            circulating_supply: circulating,
-            locked_supply: locked,
-            genesis_ts,
-            interval_ns,
-            balances,
         }
-    }
-        
-    pub fn unlockable(&self) -> U128 {
-        let now = env::block_timestamp();
-        if now < self.genesis_ts {
-            return 0.into();
-        }
-        let cycles = (now - self.genesis_ts) / self.interval_ns;
-        let per_cycle = self.locked_supply / 1; // Phase-0 single-cycle full unlock
-        (cycles as Balance * per_cycle).min(self.locked_supply).into()
     }
 
-    // Factory wrappers (v0)
-    pub fn create_token(&mut self, symbol: String, account: AccountId) {
-        self.factory.create_token(symbol, account);
+    /// Factory v0: register a token account under a symbol, bound to an immutable LAW schema.
+    pub fn create_token(&mut self, symbol: String, account: AccountId, law: LawV1Schema) {
+        self.factory.create_token(symbol.clone(), account.clone(), law);
+
+        // Minimal event (NEP-297 style prefix, deterministic JSON)
+        env::log_str(&format!(
+            r#"EVENT_JSON:{{"standard":"near-intersect","version":"1.0.0","event":"TOKEN_REGISTERED","data":{{"symbol":"{}","account":"{}"}}}}"#,
+            symbol.trim().to_uppercase(),
+            account
+        ));
     }
 
     pub fn get_token(&self, symbol: String) -> Option<AccountId> {
         self.factory.get_token(symbol)
     }
-}
 
-    
+    pub fn get_record(&self, symbol: String) -> Option<TokenRecordView> {
+        let sym = symbol.trim().to_uppercase();
+        let r = self.factory.get_record(sym.clone())?;
+
+        Some(TokenRecordView {
+            symbol: sym,
+            account: r.account,
+            created_by: r.created_by,
+            created_at_ns: r.created_at_ns,
+            schema_hash: Base64VecU8(r.schema_hash),
+            law: r.law,
+        })
+    }
+
+    pub fn get_law(&self, symbol: String) -> Option<LawV1Schema> {
+        self.get_record(symbol).map(|v| v.law)
+    }
+}
