@@ -32,7 +32,7 @@ Final price depends on code review, chain proofs, adoption, IP cleanliness, and 
   **$135M – $190M+**
 
 - **Audited + enterprise adoption signals (partners, volume, recurring revenue)**  
-  **$90M+** (price becomes strategic)
+  **$135M+++** (price becomes strategic)
 
 ### B) Commercial License (RagTuff law layer + Near-Intersect usage rights)
 - **Annual license (early stage)**: **$250k – $2M / year**
