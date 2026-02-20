@@ -1,3 +1,10 @@
+## What this is
+Near-Intersect is a governed smart-contract factory on the NEAR blockchain.
+It enforces RagTuff invariant law (schemas + deployment gates) to create compliant on-chain assets.
+
+## What this is NOT
+Not a game, not a Lua script, not a “Ragtuff game” tool, and not related to any game mods.
+
 # Mobile-First Modular Crypto Issuance Framework (NEAR-Compatible)
 
 ## Status
